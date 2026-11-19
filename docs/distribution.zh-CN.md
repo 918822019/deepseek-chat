@@ -43,13 +43,15 @@ pnpm start
 
 ## Windows 桌面应用
 
-在 Windows 上运行以下命令生成 NSIS 安装程序。
+准备 Windows 10 或 11 x64、.NET SDK 8 或更新版本，以及 NSIS 3。安装 NSIS 后可将 `makensis.exe` 加入 PATH，或用 `MAKENSIS_PATH` 指定它。运行以下命令生成安装程序。
 
 ```sh
 pnpm desktop:build
 ```
 
-安装程序位于 `release/windows/`，包含 Electron 和静态资源。`pnpm desktop:dev` 可以构建并直接打开应用。Windows 版在选择 **使用转发** 时可通过 `/proxy/nvidia/v1` 使用内置转发。对外发布时可通过 electron-builder 配置自己的 Windows 代码签名证书。
+安装程序位于 `release/windows/`。Windows 版使用系统的 Microsoft Edge WebView2 Evergreen 运行时，安装包包含微软签名的在线引导程序。机器缺少 WebView2 时，安装过程会联网补装；已经有 WebView2 时可直接安装。应用需要 Windows 的 .NET Framework 4.8。`pnpm desktop:dev` 可以构建并直接打开应用，有 WebView2 即可运行。选择 **使用转发** 时，桌面应用直接向 NVIDIA 发出请求并流式返回结果。
+
+WebView2 版和之前的 Electron 版各自保存数据，可以并存。切换时，在旧版的 **设置 → 数据管理** 导出历史 ZIP，在新版本导入，再重新填写自己的 API Key。
 
 ## Android APK
 

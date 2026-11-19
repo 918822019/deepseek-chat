@@ -4,6 +4,7 @@ import { useSettings } from '../settings.js'
 import { streamOpenAI } from './openai.js'
 import { resolveProvider } from './providers.js'
 import { readServerSentEvents } from './sse.js'
+import { fetchWithDesktopRelay } from './webview2.js'
 import type {
   ApiErrorBody,
   CreateMessageRequest,
@@ -72,7 +73,7 @@ const readErrorResponse = async (
 export const request = async (url: string, init: RequestInit): Promise<Response> => {
   let response: Response
   try {
-    response = await fetch(url, init)
+    response = await fetchWithDesktopRelay(url, init)
   } catch (error) {
     if (init.signal?.aborted) {
       throw error
@@ -101,11 +102,12 @@ const activeProvider = () => {
 /** 用 GET /models 校验 API Key（不产生费用） */
 export const verifyApiKey = async (apiKey: string, signal?: AbortSignal): Promise<void> => {
   const provider = activeProvider()
-  await request(`${provider ? provider.baseUrl.replace(/\/+$/, '') : API_ORIGIN}/models`, {
+  const response = await request(`${provider ? provider.baseUrl.replace(/\/+$/, '') : API_ORIGIN}/models`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${apiKey}` },
     signal,
   })
+  void response.body?.cancel().catch(() => {})
 }
 
 /**

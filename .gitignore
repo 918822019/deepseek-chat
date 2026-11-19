@@ -1,6 +1,8 @@
 node_modules/
 dist/
 build/
+desktop/bin/
+desktop/obj/
 release/
 .pnpm-store/
 .cache/
