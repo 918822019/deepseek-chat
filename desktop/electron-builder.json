@@ -7,7 +7,11 @@
   },
   "files": ["desktop/main.mjs", "dist/**/*", "!node_modules/**/*"],
   "npmRebuild": false,
+  "nsis": {
+    "differentialPackage": false
+  },
   "win": {
+    "electronLanguages": ["en-US", "zh-CN", "zh-TW"],
     "icon": "desktop/icon.ico",
     "target": "nsis"
   }
