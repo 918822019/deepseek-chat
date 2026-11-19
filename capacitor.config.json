@@ -1,0 +1,11 @@
+{
+  "appId": "dev.chatdemo.client",
+  "appName": "Chat Demo",
+  "webDir": "dist",
+  "server": {
+    "hostname": "chat-demo.localhost"
+  },
+  "android": {
+    "minWebViewVersion": 105
+  }
+}

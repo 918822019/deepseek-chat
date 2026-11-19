@@ -1,0 +1,14 @@
+{
+  "appId": "dev.chatdemo.client",
+  "productName": "Chat Demo",
+  "artifactName": "Chat-Demo-${version}-${arch}-setup.${ext}",
+  "directories": {
+    "output": "release/windows"
+  },
+  "files": ["desktop/main.mjs", "dist/**/*", "!node_modules/**/*"],
+  "npmRebuild": false,
+  "win": {
+    "icon": "desktop/icon.ico",
+    "target": "nsis"
+  }
+}

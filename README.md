@@ -4,15 +4,19 @@ English | [简体中文](README.zh-CN.md)
 
 A static chat demo powered by the DeepSeek API. No application backend is required: the browser connects directly to the configured API service.
 
-You can [try the app online](https://deepseek-ai.github.io/chat-demo/) or download the archive from [Releases](https://github.com/deepseek-ai/deepseek-chat-demo/releases), extract it, and double-click `index.html` to use it locally without installation or a build. Enter your API key in Settings before your first chat.
+Build and distribute this client for the web, Windows, and Android using the [distribution guide (Chinese)](docs/distribution.zh-CN.md). Enter your API key in Settings before your first chat.
+
+[Open the web app](https://918822019.github.io/deepseek-chat/) · [Download packages](https://github.com/918822019/deepseek-chat/releases)
+
+DeepSeek provides an [upstream web demo](https://deepseek-ai.github.io/chat-demo/) and [upstream releases](https://github.com/deepseek-ai/deepseek-chat-demo/releases).
 
 ## Getting started
 
 Install Node.js 22.12+ and pnpm, then run:
 
 ```sh
-git clone https://github.com/deepseek-ai/chat-demo.git
-cd chat-demo
+git clone https://github.com/918822019/deepseek-chat.git
+cd deepseek-chat
 pnpm install
 pnpm dev
 ```

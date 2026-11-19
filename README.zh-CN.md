@@ -4,15 +4,19 @@
 
 基于 DeepSeek API 的静态聊天示例。无需应用后端，浏览器直接请求配置的 API 服务。
 
-点击 [在线体验](https://deepseek-ai.github.io/chat-demo/) 即可使用，也可以前往 [Releases](https://github.com/deepseek-ai/deepseek-chat-demo/releases) 下载压缩包，解压后双击 `index.html` 在本地使用，无需安装或构建。首次使用时，请在设置中填写 API Key。
+本项目可从同一份前端构建 Web、Windows 桌面应用和 Android APK。自托管、打包和 API 设置见[三端构建与分发](docs/distribution.zh-CN.md)。
+
+[打开在线版](https://918822019.github.io/deepseek-chat/) · [下载各平台版本](https://github.com/918822019/deepseek-chat/releases)
+
+首次使用时，请在设置中填写 API Key。DeepSeek 提供[上游网页示例](https://deepseek-ai.github.io/chat-demo/)和[上游发布包](https://github.com/deepseek-ai/deepseek-chat-demo/releases)。
 
 ## 运行
 
 准备 Node.js 22.12+ 和 pnpm：
 
 ```sh
-git clone https://github.com/deepseek-ai/chat-demo.git
-cd chat-demo
+git clone https://github.com/918822019/deepseek-chat.git
+cd deepseek-chat
 pnpm install
 pnpm dev
 ```

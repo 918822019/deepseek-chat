@@ -80,13 +80,28 @@ export const createConfig = ({
       scriptLoading: 'defer',
       meta: { 'application-version': version },
     }),
-    new rspack.DefinePlugin({ __API_ORIGIN__: JSON.stringify(apiOrigin) }),
+    new rspack.DefinePlugin({
+      __API_ORIGIN__: JSON.stringify(apiOrigin),
+      __NVIDIA_BASE_URL__: JSON.stringify(process.env.CHAT_NVIDIA_BASE_URL?.trim() || '/proxy/nvidia/v1'),
+    }),
     new rspack.CopyRspackPlugin({
       patterns: [{ from: path.resolve(root, 'LICENSE'), to: 'LICENSE', toType: 'file' }],
     }),
   ],
   performance: { hints: false },
-  devServer: { port: 8090, ...devServer },
+  devServer: {
+    port: 8090,
+    // NVIDIA NIM 不允许浏览器跨域，开发时经本地代理转发（Base URL 填 /proxy/nvidia）
+    proxy: [
+      {
+        context: ['/proxy/nvidia'],
+        target: 'https://integrate.api.nvidia.com',
+        changeOrigin: true,
+        pathRewrite: { '^/proxy/nvidia': '' },
+      },
+    ],
+    ...devServer,
+  },
 })
 
 // eslint-disable-next-line import/no-default-export

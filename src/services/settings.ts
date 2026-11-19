@@ -1,5 +1,6 @@
-import { create } from 'zustand'
+﻿import { create } from 'zustand'
 import type { TtsVoice } from './api/speech.js'
+import { isProviderId, type ProviderId } from './api/providers.js'
 import { normalizeLocation, type UserLocation } from './location.js'
 
 export type Locale = 'zh-CN' | 'en-US'
@@ -10,6 +11,9 @@ export type ThemePreference = 'light' | 'dark' | 'system'
 /** 本机设置，存 localStorage：API Key、语言、主题、位置、朗读音色、深度思考与智能搜索开关、侧边栏收起状态 */
 type Settings = {
   apiKey: string | null
+  provider: ProviderId
+  providerBaseUrl: string
+  providerModel: string
   locale: Locale
   themePreference: ThemePreference
   location: UserLocation | null
@@ -21,6 +25,9 @@ type Settings = {
 
 const KEYS = {
   apiKey: 'chat-demo:api-key',
+  provider: 'chat-demo:provider',
+  providerBaseUrl: 'chat-demo:provider-base-url',
+  providerModel: 'chat-demo:provider-model',
   locale: 'chat-demo:locale',
   location: 'chat-demo:location',
   themePreference: 'chat-demo:theme-preference',
@@ -89,6 +96,9 @@ const initialTtsVoice = (): TtsVoice => (read(KEYS.ttsVoice) === 'tide' ? 'tide'
 
 export const useSettings = create<Settings>(() => ({
   apiKey: read(KEYS.apiKey),
+  provider: ((v) => (isProviderId(v) ? v : 'deepseek'))(read(KEYS.provider)),
+  providerBaseUrl: read(KEYS.providerBaseUrl) ?? '',
+  providerModel: read(KEYS.providerModel) ?? '',
   locale: initialLocale(),
   location: initialLocation(),
   themePreference: initialThemePreference(),
@@ -137,4 +147,11 @@ export const setSearch = (search: boolean) => {
 export const setSiderCollapsed = (siderCollapsed: boolean) => {
   write(KEYS.siderCollapsed, String(siderCollapsed))
   useSettings.setState({ siderCollapsed })
+}
+
+export const setProviderConfig = (config: { provider: ProviderId; providerBaseUrl: string; providerModel: string }) => {
+  write(KEYS.provider, config.provider)
+  write(KEYS.providerBaseUrl, config.providerBaseUrl)
+  write(KEYS.providerModel, config.providerModel)
+  useSettings.setState(config)
 }

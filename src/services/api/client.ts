@@ -1,5 +1,8 @@
 import { translate, type TranslationMessage } from '../../i18n/index.js'
 import { readMessageEvent } from './parseEvent.js'
+import { useSettings } from '../settings.js'
+import { streamOpenAI } from './openai.js'
+import { resolveProvider } from './providers.js'
 import { readServerSentEvents } from './sse.js'
 import type {
   ApiErrorBody,
@@ -89,9 +92,16 @@ const anthropicHeaders = (apiKey: string, beta: boolean): Record<string, string>
   ...(beta ? { 'anthropic-beta': FILES_BETA } : {}),
 })
 
+/** 当前选择的非 DeepSeek 后端；DeepSeek 时为 null */
+const activeProvider = () => {
+  const { provider, providerBaseUrl, providerModel } = useSettings.getState()
+  return resolveProvider(provider, { baseUrl: providerBaseUrl, model: providerModel })
+}
+
 /** 用 GET /models 校验 API Key（不产生费用） */
 export const verifyApiKey = async (apiKey: string, signal?: AbortSignal): Promise<void> => {
-  await request(`${API_ORIGIN}/models`, {
+  const provider = activeProvider()
+  await request(`${provider ? provider.baseUrl.replace(/\/+$/, '') : API_ORIGIN}/models`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${apiKey}` },
     signal,
@@ -146,6 +156,11 @@ export async function* streamMessage(
   body: CreateMessageRequest,
   signal: AbortSignal
 ): AsyncGenerator<MessageStreamEvent> {
+  const provider = activeProvider()
+  if (provider) {
+    yield* streamOpenAI(provider, apiKey, body, signal, request)
+    return
+  }
   const response = await request(`${ANTHROPIC_BASE_URL}/messages`, {
     method: 'POST',
     headers: {

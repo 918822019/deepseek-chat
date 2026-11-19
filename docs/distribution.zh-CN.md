@@ -1,0 +1,64 @@
+# Web、Windows 和 Android 构建
+
+三个版本使用同一套聊天界面。每端首次运行时在设置中选择模型后端并填写自己的 API Key。设置和对话保存在各端自己的本地空间，可通过设置中的历史 ZIP 导入和导出迁移对话。导入会替换目标端的本地历史，API Key 需要在目标端重新填写。
+
+在项目目录使用 Node.js 22.12+ 和 pnpm 安装依赖。项目的 Pages 工作流使用 Node.js 24。
+
+```sh
+pnpm install --frozen-lockfile
+```
+
+## Web
+
+在 Windows x64 上解压完整的 `Chat-Demo-版本-web.zip`，双击 `Open Chat Demo.exe`。它会在后台启动仅供本机访问的服务并用默认浏览器打开 `http://localhost:8080`，同时提供 NVIDIA 转发。关闭网页后服务继续运行，需要停止时双击 `Stop Chat Demo.exe`。两个 EXE 都不会创建命令窗口，压缩包已内置运行环境。
+
+从源码重新生成这个 ZIP 需要 Go 工具链：
+
+```sh
+pnpm web:build
+```
+
+ZIP 位于 `release/`。首次打包会下载并校验 Windows x64 的 Node.js 运行环境。
+
+### 静态部署与自托管
+
+```sh
+pnpm build
+pnpm start
+```
+
+`dist/` 是可部署的静态站点。可以沿用仓库里的 GitHub Pages 工作流，或部署到自己的 HTTPS 静态站点。`pnpm start` 在本地通过 `http://localhost:8080` 提供站点和 NVIDIA 转发。自托管时保留 `dist/` 与 `proxy/server.mjs` 的相对位置，并通过支持流式响应的 HTTPS 反向代理对外提供服务。
+
+纯静态托管可以直连允许跨域请求的 API 服务。使用 NVIDIA NIM 时，浏览器需要能访问 `/proxy/nvidia/v1`，或在设置的 Base URL 中填写允许网站来源跨域访问的 NVIDIA 代理。
+
+### GitHub Pages 与 Releases
+
+在自己的发布仓库中，将 **Settings → Pages → Source** 设为 **GitHub Actions**。现有工作流会构建并部署 `dist/`，发布结果和网址可在 **Actions → Deploy GitHub Pages** 中查看。
+
+如果在线版要默认提供 NVIDIA NIM，在发布仓库下配置 Actions 变量 `CHAT_NVIDIA_BASE_URL`，值为允许该站点来源访问的公开 HTTPS 转发地址。GitHub Pages 托管静态文件，NVIDIA 转发服务需要单独部署。便携 Web 包和 Windows 桌面版各自提供本地转发。
+
+在 **Releases** 中为自己的版本建立发布草稿。标签应指向构建下载包的提交。上传 `release/` 中的 Web ZIP、Windows 安装包、Android APK 和对应的 `SHA256SUMS.txt`。使用调试签名 APK 或未做代码签名的 Windows 安装包时，将本次发布标记为预发布并在说明中写清楚。
+
+## Windows 桌面应用
+
+在 Windows 上运行以下命令生成 NSIS 安装程序。
+
+```sh
+pnpm desktop:build
+```
+
+安装程序位于 `release/windows/`，包含 Electron 和静态资源。`pnpm desktop:dev` 可以构建并直接打开应用。Windows 版内置 NVIDIA 转发，默认可使用 `/proxy/nvidia/v1`。对外发布时可通过 electron-builder 配置自己的 Windows 代码签名证书。
+
+## Android APK
+
+准备 JDK 21 和 Android SDK Platform 36，配置 `JAVA_HOME` 和 `ANDROID_HOME`。如果使用 Android Studio，请将 Gradle JDK 设置为 21。手机需要 Android 7 或更新版本，以及 Chromium 105 或更新版本的系统 WebView。
+
+```sh
+pnpm android:build
+```
+
+`release/android/` 下的 `*-debug.apk` 可侧载到手机或模拟器。申请麦克风权限后可使用语音输入。历史导出由 Android 系统文件选择器保存 ZIP。
+
+NVIDIA NIM 需要可从手机访问的 HTTPS 转发地址，例如 `https://你的域名/proxy/nvidia/v1`。填写到设置的 Base URL，或者在运行构建命令前设置环境变量 `CHAT_NVIDIA_BASE_URL` 写入包的默认设置。此仓库的 `proxy/server.mjs` 已允许 Android 版本的应用来源 `https://chat-demo.localhost` 跨域访问 NVIDIA 转发。
+
+正式分发前运行 `pnpm android:sync`，在 Android Studio 中打开 `android/`，使用 **Build → Generate Signed Bundle / APK** 和发布方的密钥生成签名包。正式发布时确定应用 ID 并在每次更新时递增 `android/app/build.gradle` 中的 `versionCode`。同一发布渠道上的升级包需要沿用签名密钥。
