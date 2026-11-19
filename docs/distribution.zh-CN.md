@@ -1,6 +1,6 @@
 # Web、Windows 和 Android 构建
 
-三个版本使用同一套聊天界面。每端首次运行时在设置中选择模型后端并填写自己的 API Key。设置和对话保存在各端自己的本地空间，可通过设置中的历史 ZIP 导入和导出迁移对话。导入会替换目标端的本地历史，API Key 需要在目标端重新填写。
+三个版本使用同一套聊天界面。每端首次运行时在设置中选择模型后端并填写自己的 API Key。NVIDIA NIM 和 ModelScope 默认使用各自的官方 API。NVIDIA NIM 可在 **设置 → 数据管理** 中选择 **连接方式 → 使用转发**，ModelScope 可在 Base URL 中填写自己的转发地址。设置和对话保存在各端自己的本地空间，可通过设置中的历史 ZIP 导入和导出迁移对话。导入会替换目标端的本地历史，API Key 需要在目标端重新填写。
 
 在项目目录使用 Node.js 22.12+ 和 pnpm 安装依赖。项目的 Pages 工作流使用 Node.js 24。
 
@@ -61,6 +61,6 @@ pnpm android:build
 
 `release/android/` 下的 `*-debug.apk` 可侧载到手机或模拟器。申请麦克风权限后可使用语音输入。历史导出由 Android 系统文件选择器保存 ZIP。
 
-Android 需要转发 NVIDIA NIM 请求时，可以填写可从手机访问的 HTTPS 地址，例如 `https://你的域名/proxy/nvidia/v1`，也可在构建前设置 `CHAT_NVIDIA_BASE_URL` 来配置 **使用转发** 选项。此仓库的 `proxy/server.mjs` 已允许 Android 版本的应用来源 `https://chat-demo.localhost` 跨域访问 NVIDIA 转发。
+Android 版的 **使用转发** 选项使用本项目的 HTTPS 转发，选中后填写自己的 NVIDIA API Catalog Key 即可。可以在 Base URL 中手填手机可访问的 HTTPS 转发地址，或在构建前设置 `CHAT_NVIDIA_BASE_URL` 来更换预置地址。自建 Worker 时，将 `ANDROID_ORIGIN` 设为应用来源 `https://chat-demo.localhost`，或在自托管时使用已允许该来源的 `proxy/server.mjs`。
 
 正式分发前运行 `pnpm android:sync`，在 Android Studio 中打开 `android/`，使用 **Build → Generate Signed Bundle / APK** 和发布方的密钥生成签名包。正式发布时确定应用 ID 并在每次更新时递增 `android/app/build.gradle` 中的 `versionCode`。同一发布渠道上的升级包需要沿用签名密钥。

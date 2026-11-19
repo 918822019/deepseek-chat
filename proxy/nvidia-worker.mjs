@@ -11,8 +11,8 @@ const jsonError = (status, message, headers) =>
 export default {
   async fetch(request, env) {
     const headers = new Headers({ 'cache-control': 'no-store', vary: 'Origin' })
-    const origin = env.PAGES_ORIGIN
-    if (!origin || request.headers.get('Origin') !== origin) {
+    const origin = request.headers.get('Origin')
+    if (!origin || (origin !== env.PAGES_ORIGIN && origin !== env.ANDROID_ORIGIN)) {
       return jsonError(403, 'This origin cannot use the NVIDIA relay.', headers)
     }
     headers.set('access-control-allow-origin', origin)
