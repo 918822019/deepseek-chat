@@ -29,15 +29,15 @@ pnpm start
 
 `dist/` 是可部署的静态站点。可以沿用仓库里的 GitHub Pages 工作流，或部署到自己的 HTTPS 静态站点。`pnpm start` 在本地通过 `http://localhost:8080` 提供站点和 NVIDIA 转发。自托管时保留 `dist/` 与 `proxy/server.mjs` 的相对位置，并通过支持流式响应的 HTTPS 反向代理对外提供服务。
 
-纯静态托管可以直连允许跨域请求的 API 服务。使用 NVIDIA NIM 时，浏览器需要能访问 `/proxy/nvidia/v1`，或在设置的 Base URL 中填写允许网站来源跨域访问的 NVIDIA 代理。
+纯静态托管可以直连允许跨域请求的 API 服务。NVIDIA NIM 官方接口在浏览器直连遇到跨域限制时，可以在设置中选择 **使用转发**，也可在 Base URL 中填写自定义的 NVIDIA 转发地址。
 
 ### GitHub Pages 与 Releases
 
 在自己的发布仓库中，将 **Settings → Pages → Source** 设为 **GitHub Actions**。现有工作流会构建并部署 `dist/`，发布结果和网址可在 **Actions → Deploy GitHub Pages** 中查看。
 
-本项目的在线版已预设 NVIDIA NIM 转发地址和模型。用户在设置中切换到 **NVIDIA NIM** 并填写自己的 NVIDIA API Catalog Key 即可，Base URL 和模型 ID 可以留空。
+在线版默认使用 NVIDIA NIM 和 ModelScope 各自的官方地址。NVIDIA NIM 提供 **官方直连** 和 **使用转发** 两种连接方式。选用内置转发时，填写自己的 NVIDIA API Catalog Key 即可。ModelScope 可以在 Base URL 中填写自定义转发地址。
 
-自行部署时，将 [NVIDIA 转发模块](../proxy/nvidia-worker.mjs)部署到 Cloudflare Workers。将 Worker 的 `PAGES_ORIGIN` 设为网页的来源（如 `https://918822019.github.io`），启用 `enable_request_signal` 以在客户端断开时取消请求。若用现有域名下的独立路径，把该前缀设为 Worker 的 `PATH_PREFIX`（如 `/deepseek-nim`），并为前缀下的 `/v1/models` 和 `/v1/chat/completions` 建立对应路由。在发布仓库中把 Actions 变量 `CHAT_NVIDIA_BASE_URL` 设为转发地址加 `/v1`，然后重新部署 Pages。转发只接受指定网页来源的模型列表和聊天请求，请求使用用户自己的 `nvapi-` Key，转发端无需配置共用 Key。便携 Web 包和 Windows 桌面版各自提供本地转发。
+自行部署时，将 [NVIDIA 转发模块](../proxy/nvidia-worker.mjs)部署到 Cloudflare Workers。将 Worker 的 `PAGES_ORIGIN` 设为网页的来源（如 `https://918822019.github.io`），启用 `enable_request_signal` 以在客户端断开时取消请求。若用现有域名下的独立路径，把该前缀设为 Worker 的 `PATH_PREFIX`（如 `/deepseek-nim`），并为前缀下的 `/v1/models` 和 `/v1/chat/completions` 建立对应路由。在发布仓库中把 Actions 变量 `CHAT_NVIDIA_BASE_URL` 设为转发地址加 `/v1`，然后重新部署 Pages。这个变量配置的是 **使用转发** 选项的地址。转发只接受指定网页来源的模型列表和聊天请求，请求使用用户自己的 `nvapi-` Key，转发端无需配置共用 Key。便携 Web 包和 Windows 桌面版各自提供本地转发。
 
 在 **Releases** 中为自己的版本建立发布草稿。标签应指向构建下载包的提交。上传 `release/` 中的 Web ZIP、Windows 安装包、Android APK 和对应的 `SHA256SUMS.txt`。使用调试签名 APK 或未做代码签名的 Windows 安装包时，将本次发布标记为预发布并在说明中写清楚。
 
@@ -49,7 +49,7 @@ pnpm start
 pnpm desktop:build
 ```
 
-安装程序位于 `release/windows/`，包含 Electron 和静态资源。`pnpm desktop:dev` 可以构建并直接打开应用。Windows 版内置 NVIDIA 转发，默认可使用 `/proxy/nvidia/v1`。对外发布时可通过 electron-builder 配置自己的 Windows 代码签名证书。
+安装程序位于 `release/windows/`，包含 Electron 和静态资源。`pnpm desktop:dev` 可以构建并直接打开应用。Windows 版在选择 **使用转发** 时可通过 `/proxy/nvidia/v1` 使用内置转发。对外发布时可通过 electron-builder 配置自己的 Windows 代码签名证书。
 
 ## Android APK
 
@@ -61,6 +61,6 @@ pnpm android:build
 
 `release/android/` 下的 `*-debug.apk` 可侧载到手机或模拟器。申请麦克风权限后可使用语音输入。历史导出由 Android 系统文件选择器保存 ZIP。
 
-NVIDIA NIM 需要可从手机访问的 HTTPS 转发地址，例如 `https://你的域名/proxy/nvidia/v1`。填写到设置的 Base URL，或者在运行构建命令前设置环境变量 `CHAT_NVIDIA_BASE_URL` 写入包的默认设置。此仓库的 `proxy/server.mjs` 已允许 Android 版本的应用来源 `https://chat-demo.localhost` 跨域访问 NVIDIA 转发。
+Android 需要转发 NVIDIA NIM 请求时，可以填写可从手机访问的 HTTPS 地址，例如 `https://你的域名/proxy/nvidia/v1`，也可在构建前设置 `CHAT_NVIDIA_BASE_URL` 来配置 **使用转发** 选项。此仓库的 `proxy/server.mjs` 已允许 Android 版本的应用来源 `https://chat-demo.localhost` 跨域访问 NVIDIA 转发。
 
 正式分发前运行 `pnpm android:sync`，在 Android Studio 中打开 `android/`，使用 **Build → Generate Signed Bundle / APK** 和发布方的密钥生成签名包。正式发布时确定应用 ID 并在每次更新时递增 `android/app/build.gradle` 中的 `versionCode`。同一发布渠道上的升级包需要沿用签名密钥。

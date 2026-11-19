@@ -82,7 +82,9 @@ export const createConfig = ({
     }),
     new rspack.DefinePlugin({
       __API_ORIGIN__: JSON.stringify(apiOrigin),
-      __NVIDIA_BASE_URL__: JSON.stringify(process.env.CHAT_NVIDIA_BASE_URL?.trim() || '/proxy/nvidia/v1'),
+      __NVIDIA_RELAY_BASE_URL__: JSON.stringify(
+        process.env.CHAT_NVIDIA_BASE_URL?.trim() || '/proxy/nvidia/v1'
+      ),
     }),
     new rspack.CopyRspackPlugin({
       patterns: [{ from: path.resolve(root, 'LICENSE'), to: 'LICENSE', toType: 'file' }],
@@ -91,7 +93,7 @@ export const createConfig = ({
   performance: { hints: false },
   devServer: {
     port: 8090,
-    // NVIDIA NIM 不允许浏览器跨域，开发时经本地代理转发（Base URL 填 /proxy/nvidia）
+    // 选择 NVIDIA NIM 的转发方式时，开发服务器可提供本地转发。
     proxy: [
       {
         context: ['/proxy/nvidia'],

@@ -7,7 +7,7 @@ declare module '*.css' {}
 
 /** 公开 API 的地址，见 rspack.config.ts 的 createConfig */
 declare const __API_ORIGIN__: string
-declare const __NVIDIA_BASE_URL__: string
+declare const __NVIDIA_RELAY_BASE_URL__: string
 
 /** Prism 语言包通过副作用注册到全局 Prism */
 declare module 'prismjs/components/*' {}

@@ -43,7 +43,7 @@ pnpm dev          # http://localhost:8090
 打开页面 → 设置 → 数据管理页：
 
 1. “模型后端”选择 `NVIDIA NIM` 或 `ModelScope`。
-2. 如有需要，修改 Base URL 和模型 ID（留空使用预设默认值）。
+2. Base URL 留空时使用所选服务的官方地址。NVIDIA NIM 也可以选择 **使用转发**，或手动填写 Base URL。
 3. 填入 API Key，点确认（会先请求 `GET /models` 校验）。
 4. 回到聊天界面开始对话。
 
@@ -51,7 +51,7 @@ pnpm dev          # http://localhost:8090
 
 NVIDIA 的接口不返回 `Access-Control-Allow-*` 头，浏览器直接请求会被拦截。所以：
 
-- 开发时：`rspack.config.ts` 里的 `devServer.proxy` 会把 `/proxy/nvidia/*` 转发到 `https://integrate.api.nvidia.com`，预设的 Base URL 就是 `/proxy/nvidia/v1`。
+- 开发时：选择 **使用转发** 会走 `/proxy/nvidia/v1`，开发服务器把请求转发到 `https://integrate.api.nvidia.com`。
 - 部署时：见下一节。
 - ModelScope 实测允许浏览器跨域（返回 `Access-Control-Allow-Origin: *`），**直连即可，不需要代理**。它的模型列表是公开的，`GET https://api-inference.modelscope.cn/v1/models` 不需要 Key，可以先查再填模型 ID。
 

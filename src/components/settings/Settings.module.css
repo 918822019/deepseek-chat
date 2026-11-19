@@ -90,6 +90,10 @@
   gap: 8px;
 }
 
+.providerSelectors {
+  flex-wrap: wrap;
+}
+
 .text {
   display: flex;
   flex: 1 0 0;

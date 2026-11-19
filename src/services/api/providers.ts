@@ -6,6 +6,7 @@ export type ProviderPreset = {
   id: ProviderId
   label: string
   baseUrl: string
+  relayBaseUrl?: string
   /** 默认模型；用户可在设置中改 */
   model: string
 }
@@ -16,7 +17,8 @@ export const PROVIDER_PRESETS: Record<ProviderId, ProviderPreset> = {
   nvidia: {
     id: 'nvidia',
     label: 'NVIDIA NIM',
-    baseUrl: __NVIDIA_BASE_URL__,
+    baseUrl: 'https://integrate.api.nvidia.com/v1',
+    relayBaseUrl: __NVIDIA_RELAY_BASE_URL__,
     model: 'nvidia/nemotron-3.5-lightning-30b-a3b',
   },
   modelscope: {
