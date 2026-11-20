@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core'
 import { useState } from 'react'
 import { IconEditOutline16 } from '../base/icons.js'
 import { useSettings } from '../../services/settings.js'
@@ -78,6 +79,14 @@ export const ApiKeyField = ({ editor }: { editor: ApiKeyEditor }) => {
           </div>
         )}
         {showInput && form.error ? <div className={styles.error}>{form.error}</div> : null}
+        <a
+          className={styles.apiKeyTutorial}
+          href="https://www.bilibili.com/video/BV1Qdsq6dEL8/"
+          target={Capacitor.getPlatform() === 'android' ? undefined : '_blank'}
+          rel="noopener noreferrer"
+        >
+          {t('apiKeyTutorial')}
+        </a>
       </div>
     </div>
   )

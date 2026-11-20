@@ -215,6 +215,14 @@
   padding-bottom: 4px;
 }
 
+.apiKeyTutorial {
+  align-self: flex-start;
+  padding: 5px 0;
+  color: var(--dsw-alias-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .apiKeySaved,
 .apiKeyInput {
   display: flex;
