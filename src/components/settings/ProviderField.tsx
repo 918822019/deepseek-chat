@@ -2,6 +2,7 @@ import { PROVIDERS, PROVIDER_PRESETS, type ProviderId } from '../../services/api
 import { setProviderConfig, useSettings } from '../../services/settings.js'
 import { useTranslate } from '../../i18n/index.js'
 import { Select } from '../base/Select.js'
+import { NvidiaModelField } from './NvidiaModelField.js'
 import styles from './Settings.module.css'
 
 const inputStyle = {
@@ -48,7 +49,9 @@ export const ProviderField = () => {
             value={provider}
             options={PROVIDERS.map((p) => ({ value: p.id, label: p.label }))}
             // 切换后端时回到该后端的默认地址与模型。
-            onChange={(value) => update({ provider: value, providerBaseUrl: '', providerModel: '' })}
+            onChange={(value) =>
+              update({ provider: value, providerBaseUrl: '', providerModel: '' })
+            }
           />
           {connectionOptions ? (
             <Select
@@ -69,13 +72,21 @@ export const ProviderField = () => {
               value={providerBaseUrl}
               onChange={(event) => update({ providerBaseUrl: event.target.value })}
             />
-            <input
-              style={inputStyle}
-              spellCheck={false}
-              placeholder={`模型 ID（默认 ${preset.model || '必填'}）`}
-              value={providerModel}
-              onChange={(event) => update({ providerModel: event.target.value })}
-            />
+            {provider === 'nvidia' ? (
+              <NvidiaModelField
+                baseUrl={(baseUrl || preset.baseUrl).replace(/\/+$/, '')}
+                model={providerModel.trim() || preset.model}
+                onChange={(providerModel) => update({ providerModel })}
+              />
+            ) : (
+              <input
+                style={inputStyle}
+                spellCheck={false}
+                placeholder={`模型 ID（默认 ${preset.model || '必填'}）`}
+                value={providerModel}
+                onChange={(event) => update({ providerModel: event.target.value })}
+              />
+            )}
           </>
         ) : null}
       </div>

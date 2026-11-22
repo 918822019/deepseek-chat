@@ -1,6 +1,6 @@
 ﻿import { create } from 'zustand'
 import type { TtsVoice } from './api/speech.js'
-import { isProviderId, type ProviderId } from './api/providers.js'
+import { isProviderId, PROVIDER_PRESETS, type ProviderId } from './api/providers.js'
 import { normalizeLocation, type UserLocation } from './location.js'
 
 export type Locale = 'zh-CN' | 'en-US'
@@ -52,8 +52,54 @@ const write = (key: string, value: string | null) => {
     } else {
       localStorage.setItem(key, value)
     }
+    return true
   } catch {
     // 存储不可用时只在内存中生效
+    return false
+  }
+}
+
+type ProviderConfig = Pick<Settings, 'provider' | 'providerBaseUrl' | 'providerModel'>
+
+export const apiKeyScope = ({ provider, providerBaseUrl }: ProviderConfig) => {
+  const key = `${KEYS.apiKey}:${provider}`
+  const baseUrl = providerBaseUrl.trim().replace(/\/+$/, '')
+  const { baseUrl: direct, relayBaseUrl } = PROVIDER_PRESETS.nvidia
+  return provider === 'nvidia' && baseUrl && baseUrl !== direct && baseUrl !== relayBaseUrl
+    ? `${key}:${baseUrl}`
+    : key
+}
+
+const apiKeys = new Map<string, string | null>()
+const getScopedApiKey = (scope: string) => {
+  if (!apiKeys.has(scope)) {
+    apiKeys.set(scope, read(scope))
+  }
+  return apiKeys.get(scope) ?? null
+}
+
+const savedProvider = read(KEYS.provider)
+const initialProvider: ProviderConfig = {
+  provider: isProviderId(savedProvider) ? savedProvider : 'deepseek',
+  providerBaseUrl: read(KEYS.providerBaseUrl) ?? '',
+  providerModel: read(KEYS.providerModel) ?? '',
+}
+
+// 旧版只有一个 Key。迁移到保存的后端，NVIDIA 官方 Key 可通过前缀识别。
+const legacyApiKey = read(KEYS.apiKey)
+if (legacyApiKey) {
+  const legacyScope =
+    legacyApiKey.startsWith('nvapi-') && initialProvider.provider !== 'nvidia'
+      ? apiKeyScope({ provider: 'nvidia', providerBaseUrl: '', providerModel: '' })
+      : apiKeyScope(initialProvider)
+  // 当前后端可能刚从其他平台切到 NVIDIA，避免自动发送归属不明的旧 Key。
+  const needsNvidiaKey = legacyScope === `${KEYS.apiKey}:nvidia`
+  if (!needsNvidiaKey || legacyApiKey.startsWith('nvapi-')) {
+    if (read(legacyScope) !== null || write(legacyScope, legacyApiKey)) {
+      write(KEYS.apiKey, null)
+    } else {
+      apiKeys.set(legacyScope, legacyApiKey)
+    }
   }
 }
 
@@ -95,10 +141,8 @@ const initialThemePreference = (): ThemePreference => {
 const initialTtsVoice = (): TtsVoice => (read(KEYS.ttsVoice) === 'tide' ? 'tide' : 'stella')
 
 export const useSettings = create<Settings>(() => ({
-  apiKey: read(KEYS.apiKey),
-  provider: ((v) => (isProviderId(v) ? v : 'deepseek'))(read(KEYS.provider)),
-  providerBaseUrl: read(KEYS.providerBaseUrl) ?? '',
-  providerModel: read(KEYS.providerModel) ?? '',
+  ...initialProvider,
+  apiKey: getScopedApiKey(apiKeyScope(initialProvider)),
   locale: initialLocale(),
   location: initialLocation(),
   themePreference: initialThemePreference(),
@@ -130,7 +174,9 @@ export const setTtsVoice = (ttsVoice: TtsVoice) => {
 }
 
 export const setApiKey = (apiKey: string | null) => {
-  write(KEYS.apiKey, apiKey)
+  const scope = apiKeyScope(useSettings.getState())
+  apiKeys.set(scope, apiKey)
+  write(scope, apiKey)
   useSettings.setState({ apiKey })
 }
 
@@ -149,9 +195,9 @@ export const setSiderCollapsed = (siderCollapsed: boolean) => {
   useSettings.setState({ siderCollapsed })
 }
 
-export const setProviderConfig = (config: { provider: ProviderId; providerBaseUrl: string; providerModel: string }) => {
+export const setProviderConfig = (config: ProviderConfig) => {
   write(KEYS.provider, config.provider)
   write(KEYS.providerBaseUrl, config.providerBaseUrl)
   write(KEYS.providerModel, config.providerModel)
-  useSettings.setState(config)
+  useSettings.setState({ ...config, apiKey: getScopedApiKey(apiKeyScope(config)) })
 }

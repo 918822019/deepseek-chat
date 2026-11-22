@@ -2,6 +2,8 @@
 
 三个版本使用同一套聊天界面。每端首次运行时在设置中选择模型后端并填写自己的 API Key。NVIDIA NIM 和 ModelScope 默认使用各自的官方 API。NVIDIA NIM 可在 **设置 → 数据管理** 中选择 **连接方式 → 使用转发**，ModelScope 可在 Base URL 中填写自己的转发地址。设置和对话保存在各端自己的本地空间，可通过设置中的历史 ZIP 导入和导出迁移对话。导入会替换目标端的本地历史，API Key 需要在目标端重新填写。
 
+发布与教程约定：在线 Web、本地 Web、Windows 桌面版和 Android APK 的内置聊天后端统一以 DeepSeek 系列作为默认模型。各后端填写自己接口实际支持的 DeepSeek 模型 ID，教程也用 DeepSeek 演示。
+
 在项目目录使用 Node.js 22.12+ 和 pnpm 安装依赖。项目的 Pages 工作流使用 Node.js 24。
 
 ```sh

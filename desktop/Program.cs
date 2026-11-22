@@ -31,6 +31,8 @@ internal sealed class ChatWindow : Form
 
     public ChatWindow()
     {
+        AutoScaleDimensions = new SizeF(96F, 96F);
+        AutoScaleMode = AutoScaleMode.Dpi;
         Text = "Chat Demo";
         Width = 1180;
         Height = 820;
@@ -122,7 +124,15 @@ internal sealed class ChatWindow : Form
 
         using (args.GetDeferral())
         {
-            var preview = new Form { Text = "Chat Demo", Width = 900, Height = 650, Icon = Icon };
+            var preview = new Form
+            {
+                AutoScaleDimensions = new SizeF(96F, 96F),
+                AutoScaleMode = AutoScaleMode.Dpi,
+                Text = "Chat Demo",
+                Width = 900,
+                Height = 650,
+                Icon = Icon,
+            };
             var contents = new WebView2 { Dock = DockStyle.Fill };
             preview.Controls.Add(contents);
             try

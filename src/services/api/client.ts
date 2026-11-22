@@ -99,15 +99,65 @@ const activeProvider = () => {
   return resolveProvider(provider, { baseUrl: providerBaseUrl, model: providerModel })
 }
 
-/** 用 GET /models 校验 API Key（不产生费用） */
-export const verifyApiKey = async (apiKey: string, signal?: AbortSignal): Promise<void> => {
-  const provider = activeProvider()
-  const response = await request(`${provider ? provider.baseUrl.replace(/\/+$/, '') : API_ORIGIN}/models`, {
+const requestModels = (baseUrl: string, apiKey: string, signal?: AbortSignal) =>
+  request(`${baseUrl.replace(/\/+$/, '')}/models`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${apiKey}` },
     signal,
   })
+
+/** 用 GET /models 校验 API Key（不产生费用） */
+export const verifyApiKey = async (apiKey: string, signal?: AbortSignal): Promise<void> => {
+  const response = await requestModels(activeProvider()?.baseUrl ?? API_ORIGIN, apiKey, signal)
   void response.body?.cancel().catch(() => {})
+}
+
+// NVIDIA 目录会列出专用服务。部分记录还没有 model_type，用 ID 识别这些端点。
+const nonChatNvidiaId =
+  /(?:^|[/-])(?:embed(?:dings?|qa)?|nvembedqa|nvclip|rerank(?:er|ing)?|nemoguard|guard|safety|gliner2|ai-synthetic-video-detector|ising-calibration|riva-translate)(?:[/-]|$)/i
+const nonChatModelTypes = new Set([
+  'embedding',
+  'embeddings',
+  'rerank',
+  'reranking',
+  'classification',
+  'moderation',
+  'text-to-speech',
+  'speech-to-text',
+  'text-to-image',
+  'text-to-video',
+])
+
+export const listNvidiaChatModels = async (
+  baseUrl: string,
+  apiKey: string,
+  signal: AbortSignal
+) => {
+  const response = await requestModels(baseUrl, apiKey, signal)
+  const catalog: unknown = await response.json().catch(() => null)
+  if (
+    !catalog ||
+    typeof catalog !== 'object' ||
+    !('data' in catalog) ||
+    !Array.isArray(catalog.data)
+  ) {
+    throw new ApiError('protocol', '')
+  }
+  const models = new Set<string>()
+  for (const model of catalog.data as unknown[]) {
+    if (!model || typeof model !== 'object' || !('id' in model) || typeof model.id !== 'string') {
+      continue
+    }
+    const id = model.id.trim()
+    const type =
+      'model_type' in model && typeof model.model_type === 'string'
+        ? model.model_type.toLowerCase()
+        : ''
+    if (id && !nonChatModelTypes.has(type) && !nonChatNvidiaId.test(id)) {
+      models.add(id)
+    }
+  }
+  return [...models].sort((a, b) => a.localeCompare(b, 'en'))
 }
 
 /**

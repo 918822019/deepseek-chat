@@ -45,7 +45,7 @@ pnpm dev          # http://localhost:8090
 1. “模型后端”选择 `NVIDIA NIM` 或 `ModelScope`。
 2. Base URL 留空时使用所选服务的官方地址。NVIDIA NIM 也可以选择 **使用转发**，或手动填写 Base URL。
 3. 填入 API Key，点确认（会先请求 `GET /models` 校验）。
-4. 回到聊天界面开始对话。
+4. 使用 NVIDIA NIM 时，在自动加载的「NVIDIA 聊天模型」下拉框中选择模型，再回到聊天界面开始对话。
 
 ## 4. 为什么 NVIDIA 需要代理（CORS）
 
