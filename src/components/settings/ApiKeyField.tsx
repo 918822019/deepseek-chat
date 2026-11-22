@@ -81,7 +81,7 @@ export const ApiKeyField = ({ editor }: { editor: ApiKeyEditor }) => {
         {showInput && form.error ? <div className={styles.error}>{form.error}</div> : null}
         <a
           className={styles.apiKeyTutorial}
-          href="https://www.bilibili.com/video/BV1Qdsq6dEL8/"
+          href="https://github.com/918822019/deepseek-chat/blob/main/docs/api-key.zh-CN.md"
           target={Capacitor.getPlatform() === 'android' ? undefined : '_blank'}
           rel="noopener noreferrer"
         >

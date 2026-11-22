@@ -104,7 +104,7 @@ export const en = {
   avatarMenuSettingsDialogThemeSelectDarkOption: 'Dark',
   avatarMenuSettingsDialogThemeSelectSystemOption: 'System',
   apiKeyStart: 'Enter an API Key to get started',
-  apiKeyTutorial: 'Watch the API Key setup tutorial (Bilibili)',
+  apiKeyTutorial: 'Read the illustrated API Key setup guide (Chinese)',
   apiKeyEdit: 'Edit API Key',
   apiKeyPlaceholder: 'Enter API Key',
   providerLabel: 'Model provider',
