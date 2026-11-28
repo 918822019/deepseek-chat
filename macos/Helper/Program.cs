@@ -31,7 +31,11 @@ internal static class Program
                     reply["value"] = files.Run(command);
                 }
                 catch (TaskWorkspace.ReadFailure error) { reply["error"] = error.Code.ToString(); }
-                catch (Exception) { reply["error"] = "failed"; }
+                catch (Exception error)
+                {
+                    Console.Error.WriteLine($"Workspace {command.GetProperty("Action").GetString()}: {error.GetType().Name}");
+                    reply["error"] = "failed";
+                }
                 Send(reply);
             }
             await server.StopAsync();

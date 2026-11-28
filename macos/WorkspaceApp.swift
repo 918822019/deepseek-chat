@@ -1,4 +1,5 @@
 import AppKit
+import Darwin
 import WebKit
 
 final class WorkspaceApp: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScriptMessageHandlerWithReply {
@@ -97,7 +98,14 @@ final class WorkspaceApp: NSObject, NSApplicationDelegate, WKNavigationDelegate,
                 guard let self else { replyHandler(error, nil); return }
                 self.choosing = false
                 guard response == .OK, let url = panel.url else { replyHandler(empty, nil); return }
-                self.service.send(["Id": id, "Action": "grant", "Path": url.resolvingSymlinksInPath().standardizedFileURL.path]) {
+                // Foundation can shorten /private/var back to /var, which is a symbolic link.
+                // The shared file reader requires the physical path of the user-selected directory.
+                guard let physical = url.withUnsafeFileSystemRepresentation({ name in
+                    name.flatMap { realpath($0, nil) }
+                }) else { replyHandler(error, nil); return }
+                let path = FileManager.default.string(withFileSystemRepresentation: physical, length: strlen(physical))
+                free(physical)
+                self.service.send(["Id": id, "Action": "grant", "Path": path]) {
                     replyHandler($0 ?? error, nil)
                 }
             }

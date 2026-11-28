@@ -8,6 +8,7 @@ import tempfile
 import threading
 import time
 import urllib.request
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from zipfile import ZipFile, ZIP_DEFLATED
 
@@ -65,6 +66,27 @@ def run(*args):
     subprocess.run(args, check=True)
 
 
+def check_office_helper(bundle, inputs, profile):
+    executable = bundle/'Contents/Helpers/WorkspaceHost'
+    with subprocess.Popen([executable, bundle/'Contents/Resources/dist', profile], stdin=subprocess.PIPE,
+                          stdout=subprocess.PIPE, text=True, encoding='utf-8') as helper:
+        def send(action, **values):
+            helper.stdin.write(json.dumps(dict(Id=str(uuid.uuid4()), Action=action, **values))+'\n')
+            helper.stdin.flush()
+            result = json.loads(helper.stdout.readline())
+            assert 'error' not in result, (action, result)
+            return result['value']
+        try:
+            assert json.loads(helper.stdout.readline())['origin'].startswith('http://127.0.0.1:')
+            grant = send('grant', Path=str(inputs.resolve()))
+            assert len(grant['files']) == 2
+            assert '周宁' in send('read', WorkspaceId=grant['id'], Name='会议.docx')['content']
+            assert 'B2=7350' in send('read', WorkspaceId=grant['id'], Name='预算.xlsx')['content']
+            print('PASS mounted native helper read both Office documents', flush=True)
+        finally:
+            helper.stdin.close()
+
+
 def verify(dmg):
     assert platform.system() == 'Darwin' and platform.machine() == 'arm64'
     with tempfile.TemporaryDirectory() as temp:
@@ -83,6 +105,7 @@ def verify(dmg):
             assert (mount / 'Applications').is_symlink()
             for name in ('MacOS/Workspace', 'Helpers/WorkspaceHost'):
                 assert subprocess.check_output(['lipo','-archs',bundle/'Contents'/name], text=True).strip() == 'arm64'
+            check_office_helper(bundle, inputs, base / 'helper-profile')
             # Launch the actual executable directly from the read-only mounted bundle.
             with subprocess.Popen([bundle/'Contents/MacOS/Workspace']) as app:
                 try:
@@ -103,6 +126,10 @@ def verify(dmg):
                 try:
                     model = 'http://127.0.0.1:' + str(server.server_port) + '/v1'
                     run(binary, bundle, base / 'profile', inputs, model, ROOT/'macos/tests/flow.js')
+                except subprocess.CalledProcessError:
+                    grants = (base / 'profile' / 'TaskWorkspaces').glob('*')
+                    print('Accepted test folders:', [grant.read_text() for grant in grants], flush=True)
+                    raise
                 finally: server.shutdown()
                 assert server.requests == 1
             docs = list((inputs/'工作台成果').glob('*.md'))
