@@ -1,6 +1,5 @@
 """Mount the shipping disk image and run its UI, shared native helper and a local streaming model."""
 import json
-import os
 from pathlib import Path
 import platform
 import subprocess

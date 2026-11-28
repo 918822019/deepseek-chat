@@ -29,11 +29,22 @@ shell.configureWeb = { config in
 }
 shell.configurePanel = { panel in
     panel.directoryURL = folder
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { panel.ok(nil) }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        // The Open panel runs out of process. Deliver Return through AppKit's normal event path.
+        let target = NSApp.keyWindow ?? panel
+        for type in [NSEvent.EventType.keyDown, .keyUp] {
+            guard let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [],
+                    timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: target.windowNumber,
+                    context: nil, characters: "\r", charactersIgnoringModifiers: "\r", isARepeat: false,
+                    keyCode: 36) else { fail("Could not create a Return key event") }
+            NSApp.postEvent(event, atStart: false)
+        }
+        print("Confirmed folder panel using Return")
+    }
 }
 var opened = Set<String>()
 var finished = false
-func checkCompletion() {
+@MainActor func checkCompletion() {
     guard finished, opened == ["open", "reveal"] else { return }
     print("PASS native folder panel, Word and Excel, model stream, preview, native open and Finder reveal")
     shell.service.stop()

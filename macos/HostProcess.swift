@@ -40,8 +40,8 @@ final class HostProcess {
 
     func send(_ command: Message, reply: @escaping (Message?) -> Void) {
         guard process.isRunning, let id = command["Id"] as? String, replies[id] == nil,
-              var data = try? JSONSerialization.data(withJSONObject: command) else { reply(nil); return }
-        data.append(10)
+              let json = try? JSONSerialization.data(withJSONObject: command) else { reply(nil); return }
+        let data = json + Data([10])
         replies[id] = reply
         writer.async { [weak self] in
             do { try self?.input.fileHandleForWriting.write(contentsOf: data) }
