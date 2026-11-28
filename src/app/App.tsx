@@ -24,6 +24,9 @@ import { stopReadAloud } from '../services/speech/readAloud.js'
 import { CollapsedSider } from '../components/sider/CollapsedSider.js'
 import { closeMobileSider } from '../components/sider/mobileSiderState.js'
 import { MobileSider, Sider } from '../components/sider/Sider.js'
+import { TaskWorkbench } from '../components/tasks/TaskWorkbench.js'
+import { goToTasks, initTasks, useTaskStore } from '../services/tasks/store.js'
+import { getDesktopBridge } from '../services/desktopBridge.js'
 import styles from './App.module.css'
 
 export const App = () => {
@@ -49,34 +52,53 @@ export const App = () => {
     state.activeId === null ? false : Object.hasOwn(state.streaming, state.activeId)
   )
   const activeId = useChatStore((state) => state.activeId)
+  const desktop = Boolean(getDesktopBridge())
+  const page = useTaskStore((state) => state.page)
+  const taskOpen = desktop && page !== 'chat'
+  const openTask = desktop
+    ? () => {
+        closeMobileSider()
+        goToTasks()
+      }
+    : undefined
 
   usePreventPageScroll(isMobile)
 
   useEffect(() => {
     document.documentElement.lang = locale
-  }, [locale])
+    if (desktop) {
+      document.title = t('desktopWorkspace')
+    }
+  }, [locale, desktop, t])
 
   // 文件数、存储空间达到上限时，附件上只显示「上传失败」，原因用 toast 说明
   useEffect(() => onUploadNotice(showToast), [])
   useEffect(bindChatPersistence, [])
 
   // 搜索结果面板只属于当前会话
-  useEffect(closeSearchPanel, [activeId])
+  useEffect(closeSearchPanel, [activeId, page])
   // 切换会话时停止朗读
-  useEffect(stopReadAloud, [activeId])
+  useEffect(stopReadAloud, [activeId, page])
   // 移动端选中会话、切换布局后收起抽屉
   useEffect(closeMobileSider, [activeId, isMobile])
 
   useEffect(() => {
     void initChat()
-    // 首次打开先在设置里输入 API Key
-    ensureApiKey()
-  }, [])
+    if (desktop) {
+      void initTasks()
+    } else {
+      ensureApiKey()
+    }
+  }, [desktop])
 
   return (
     <>
       <div ref={frameRef} className={styles.frame}>
-        {isMobile ? <MobileSider /> : siderCollapsed ? null : <Sider />}
+        {isMobile ? (
+          <MobileSider onNewTask={openTask} />
+        ) : siderCollapsed ? null : (
+          <Sider onNewTask={openTask} />
+        )}
         <main className={styles.main}>
           {saveError ? (
             <div className={styles.saveError} role="alert">
@@ -92,8 +114,10 @@ export const App = () => {
             </div>
           ) : null}
           <div className={styles.content}>
-            {siderCollapsed ? <CollapsedSider /> : null}
-            {!ready || (activeId !== null && !session) ? (
+            {siderCollapsed ? <CollapsedSider onNewTask={openTask} /> : null}
+            {taskOpen ? (
+              <TaskWorkbench collapsed={siderCollapsed} />
+            ) : !ready || (activeId !== null && !session) ? (
               <div className={styles.loadingView}>
                 {isMobile ? <MobileHeader /> : null}
                 <div className={styles.loadingState} role="status" aria-live="polite">
@@ -130,7 +154,7 @@ export const App = () => {
             )}
           </div>
         </main>
-        <SearchPanel />
+        {taskOpen ? null : <SearchPanel />}
       </div>
       <SettingsDialog />
       <Toast />

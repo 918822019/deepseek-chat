@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "桌面工作台";
+"NSDesktopFolderUsageDescription" = "读取你选中的资料，并在资料目录中保存生成的 Markdown 文档。";
+"NSDocumentsFolderUsageDescription" = "读取你选中的资料，并在资料目录中保存生成的 Markdown 文档。";
+"NSDownloadsFolderUsageDescription" = "读取你选中的资料，并在资料目录中保存生成的 Markdown 文档。";

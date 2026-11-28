@@ -3,6 +3,8 @@ dist/
 build/
 desktop/bin/
 desktop/obj/
+macos/Helper/bin/
+macos/Helper/obj/
 release/
 .pnpm-store/
 .cache/

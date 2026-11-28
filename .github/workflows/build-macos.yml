@@ -1,0 +1,44 @@
+name: Build macOS DMG (Apple silicon)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 12.6.0
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Set up .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Install and check the frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm type
+          pnpm lint
+      - name: Build the Apple silicon disk image
+        run: pnpm macos:build
+      - name: Mount the DMG and exercise the workspace
+        run: python3 macos/tests/verify.py release/macos/*.dmg
+      - name: Upload the verified DMG
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: Desktop-Workspace-macos-arm64
+          path: release/macos/*.dmg
+          if-no-files-found: error
+          compression-level: 0

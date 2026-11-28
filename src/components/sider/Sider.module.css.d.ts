@@ -4,6 +4,9 @@ declare const styles: {
   readonly "appName": string;
   readonly "newChat": string;
   readonly "newChatIcon": string;
+  readonly "newTask": string;
+  readonly "historyNav": string;
+  readonly "recentLink": string;
   readonly "listWrap": string;
   readonly "list": string;
   readonly "section": string;

@@ -12,10 +12,12 @@ import styles from './SessionItem.module.css'
 export const SessionItem = memo(function SessionItem({
   session,
   active,
+  onOpen,
   onDelete,
 }: {
   session: SessionSummary
   active: boolean
+  onOpen?: () => void
   onDelete: () => void
 }) {
   const t = useTranslate()
@@ -51,6 +53,7 @@ export const SessionItem = memo(function SessionItem({
     <div
       className={clsx(styles.item, active && styles.active)}
       onClick={() => {
+        onOpen?.()
         selectSession(session.id)
         closeMobileSider()
       }}

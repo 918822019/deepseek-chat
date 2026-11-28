@@ -20,6 +20,7 @@ internal static class Program
 
 internal sealed class ChatWindow : Form
 {
+    private static readonly bool Chinese = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh";
     private const string Host = "desktop.chat-demo.localhost";
     internal const string IndexUrl = "https://" + Host + "/index.html";
     private const string Csp = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
@@ -28,12 +29,13 @@ internal sealed class ChatWindow : Form
 
     private readonly WebView2 view = new WebView2 { Dock = DockStyle.Fill };
     private NvidiaRelay? relay;
+    private TaskWorkspaceBridge? taskWorkspace;
 
     public ChatWindow()
     {
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
-        Text = "Chat Demo";
+        Text = Chinese ? "桌面工作台" : "Desktop Workspace";
         Width = 1180;
         Height = 820;
         MinimumSize = new Size(420, 520);
@@ -53,8 +55,9 @@ internal sealed class ChatWindow : Form
         {
             if (IsDisposed) return;
             var message = error is WebView2RuntimeNotFoundException
-                ? "缺少 Microsoft Edge WebView2 运行时。请重新运行 Chat Demo 安装程序。"
-                : "无法启动 Chat Demo。\n\n" + error.Message;
+                ? (Chinese ? "缺少 Microsoft Edge WebView2 运行时。请重新运行桌面工作台安装程序。"
+                    : "Microsoft Edge WebView2 Runtime is missing. Run Desktop Workspace setup again.")
+                : (Chinese ? "无法启动桌面工作台。" : "Desktop Workspace could not start.") + "\n\n" + error.Message;
             MessageBox.Show(this, message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
             Close();
         }
@@ -90,6 +93,7 @@ internal sealed class ChatWindow : Form
         core.FrameNavigationStarting += (_, args) => args.Cancel = true;
         core.NewWindowRequested += HandleNewWindow;
         relay = new NvidiaRelay(core);
+        taskWorkspace = new TaskWorkspaceBridge(core, title => TaskFolderPicker.Select(this, title), TaskWorkspace.Open);
         core.Navigate(IndexUrl);
     }
 
@@ -128,7 +132,7 @@ internal sealed class ChatWindow : Form
             {
                 AutoScaleDimensions = new SizeF(96F, 96F),
                 AutoScaleMode = AutoScaleMode.Dpi,
-                Text = "Chat Demo",
+                Text = this.Text,
                 Width = 900,
                 Height = 650,
                 Icon = Icon,
@@ -170,6 +174,7 @@ internal sealed class ChatWindow : Form
 
     protected override void OnFormClosed(FormClosedEventArgs args)
     {
+        taskWorkspace?.Dispose();
         relay?.Dispose();
         base.OnFormClosed(args);
     }

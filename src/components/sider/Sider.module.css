@@ -74,6 +74,72 @@
   }
 }
 
+.newChat.newTask {
+  margin-bottom: 8px;
+  background: var(--dsw-alias-button-primary-fill);
+  color: var(--dsw-alias-label-primary-foreground);
+  border-radius: 12px;
+}
+
+.newTask + .newChat {
+  border-radius: 12px;
+}
+
+.historyNav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+}
+
+.historyNav:hover,
+.historyNav[aria-current] {
+  background: var(--dsw-specific-sidebar-nav-item-hover);
+}
+
+.historyNav small {
+  color: var(--dsw-alias-brand-text);
+  margin-left: auto;
+}
+
+.recentLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+  text-align: left;
+}
+.recentLink:hover,
+.recentLink[aria-current] {
+  background: var(--dsw-specific-sidebar-nav-item-hover);
+}
+.recentLink > svg {
+  flex-shrink: 0;
+  color: var(--dsw-alias-label-tertiary);
+}
+.recentLink span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .newChatIcon {
   display: flex;
   margin-right: 6px;

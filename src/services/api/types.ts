@@ -5,6 +5,7 @@
  */
 
 export type ChatModel = 'deepseek-flash' | 'deepseek-v4-pro'
+export const DEFAULT_CHAT_MODEL: ChatModel = 'deepseek-flash'
 
 // ---------- 响应：内容块 ----------
 
@@ -174,6 +175,7 @@ export type DeepseekReadUrlTool = {
 
 export type CreateMessageRequest = {
   model: ChatModel
+  max_tokens?: number
   system: string
   messages: MessageParam[]
   thinking: { type: 'enabled' | 'disabled' }

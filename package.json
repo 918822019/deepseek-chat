@@ -1,6 +1,6 @@
 {
   "name": "chat-demo",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "基于 DeepSeek API 的聊天客户端。",
   "license": "MIT",
   "private": true,
@@ -12,6 +12,7 @@
     "start": "node proxy/server.mjs",
     "desktop:dev": "pnpm build && node scripts/build-desktop.mjs --run",
     "desktop:build": "pnpm build && node scripts/build-desktop.mjs",
+    "macos:build": "pnpm build && bash scripts/build-macos.sh",
     "android:sync": "pnpm build --env platform=android && cap sync android",
     "android:build": "pnpm android:sync && node scripts/build-android.mjs",
     "type": "tsc -p tsconfig.json",

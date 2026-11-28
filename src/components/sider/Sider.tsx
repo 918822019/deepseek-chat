@@ -13,13 +13,33 @@ import { showToast } from '../base/toastState.js'
 import { openSettings } from '../settings/settingsDialogState.js'
 import { closeMobileSider, useMobileSider } from './mobileSiderState.js'
 import { SessionItem } from './SessionItem.js'
+import {
+  goToChat,
+  goToHistory,
+  taskLabels,
+  useTaskStore,
+  viewTask,
+} from '../../services/tasks/store.js'
+import { TaskIcon } from '../tasks/TaskIcon.js'
 import styles from './Sider.module.css'
 
 /** 展开的侧边栏：名称与收起按钮、开启新对话、按时间分组的会话列表、底部设置；移动端放在抽屉里，收起按钮关闭抽屉 */
-export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
+export const Sider = ({
+  mobile = false,
+  onNewTask,
+}: {
+  mobile?: boolean
+  onNewTask?: () => void
+}) => {
   const t = useTranslate()
   const sessions = useChatStore((state) => state.sessions)
   const activeId = useChatStore((state) => state.activeId)
+  const page = useTaskStore((state) => state.page)
+  const runs = useTaskStore((state) => state.runs)
+  const selectedTask = useTaskStore((state) => state.selectedId)
+  const running = useTaskStore(
+    (state) => state.runs.filter((run) => run.status === 'running').length
+  )
   const [now, setNow] = useState(Date.now)
   const groups = useMemo(() => groupSessions(sessions, now, t), [sessions, now, t])
   const [deleting, setDeleting] = useState<SessionSummary | null>(null)
@@ -52,7 +72,7 @@ export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
   return (
     <div className={clsx(styles.sider, mobile && styles.mobile)}>
       <div className={styles.top}>
-        <div className={styles.appName}>{t('appName')}</div>
+        <div className={styles.appName}>{t(onNewTask ? 'desktopWorkspace' : 'appName')}</div>
         <IconButton
           size="m"
           icon={<IconPanelLeftOutline16 />}
@@ -61,10 +81,21 @@ export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
           onClick={() => (mobile ? closeMobileSider() : setSiderCollapsed(true))}
         />
       </div>
+      {onNewTask ? (
+        <button type="button" className={clsx(styles.newChat, styles.newTask)} onClick={onNewTask}>
+          <span className={styles.newChatIcon}>
+            <TaskIcon name="add" size={16} />
+          </span>
+          {t('newTask')}
+        </button>
+      ) : null}
       <button
         type="button"
         className={styles.newChat}
         onClick={() => {
+          if (onNewTask) {
+            goToChat()
+          }
           newChat()
           closeMobileSider()
         }}
@@ -74,8 +105,43 @@ export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
         </span>
         {t('newChat')}
       </button>
+      {onNewTask ? (
+        <button
+          type="button"
+          className={styles.historyNav}
+          aria-current={page === 'history' ? 'page' : undefined}
+          onClick={() => {
+            goToHistory()
+            closeMobileSider()
+          }}
+        >
+          <TaskIcon name="history" size={17} />
+          {t('taskHistory')}
+          {running ? <small>{t('taskActiveCount', { count: running })}</small> : null}
+        </button>
+      ) : null}
       <div className={styles.listWrap}>
         <div className={styles.list}>
+          {onNewTask && (page === 'chat' || page === 'detail') && runs.length > 0 ? (
+            <div className={styles.section}>
+              <div className={styles.sectionHeader}>{t('taskLatest')}</div>
+              {runs.slice(0, 5).map((run) => (
+                <button
+                  key={run.id}
+                  className={styles.recentLink}
+                  aria-current={page === 'detail' && selectedTask === run.id ? 'page' : undefined}
+                  title={run.title + ' · ' + t(taskLabels[run.status])}
+                  onClick={() => {
+                    viewTask(run.id)
+                    closeMobileSider()
+                  }}
+                >
+                  <TaskIcon name="file" size={15} />
+                  <span>{run.title}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
           {groups.map((group) => (
             <div key={group.key} className={styles.section}>
               <div className={styles.sectionHeader}>{group.label}</div>
@@ -83,7 +149,8 @@ export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
                 <SessionItem
                   key={session.id}
                   session={session}
-                  active={session.id === activeId}
+                  active={session.id === activeId && (!onNewTask || page === 'chat')}
+                  onOpen={onNewTask ? goToChat : undefined}
                   onDelete={() => setDeleting(session)}
                 />
               ))}
@@ -141,7 +208,7 @@ export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
 }
 
 /** 移动端抽屉：浮在页面上方，点空白区域关闭。 */
-export const MobileSider = () => {
+export const MobileSider = ({ onNewTask }: { onNewTask?: () => void }) => {
   const open = useMobileSider((state) => state.open)
   if (!open) {
     return null
@@ -150,7 +217,7 @@ export const MobileSider = () => {
     <>
       <div className={styles.drawerMask} onClick={closeMobileSider} />
       <div className={styles.drawer}>
-        <Sider mobile />
+        <Sider mobile onNewTask={onNewTask} />
       </div>
     </>
   )

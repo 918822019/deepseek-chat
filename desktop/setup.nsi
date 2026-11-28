@@ -7,7 +7,7 @@ ManifestDPIAware true
 !include "x64.nsh"
 !include "LogicLib.nsh"
 
-!define APP_NAME "Chat Demo (WebView2)"
+!define APP_NAME "桌面工作台"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\ChatDemoWebView2"
 !define WEBVIEW2_KEY "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
 
@@ -18,8 +18,8 @@ UninstallIcon "${ROOT}\desktop\icon.ico"
 InstallDir "$LOCALAPPDATA\Programs\Chat Demo WebView2"
 AutoCloseWindow true
 VIProductVersion "${APP_VERSION}.0"
-VIAddVersionKey "ProductName" "Chat Demo (WebView2)"
-VIAddVersionKey "FileDescription" "Chat Demo WebView2 setup"
+VIAddVersionKey "ProductName" "${APP_NAME}"
+VIAddVersionKey "FileDescription" "Desktop Workspace Setup"
 VIAddVersionKey "FileVersion" "${APP_VERSION}"
 VIAddVersionKey "ProductVersion" "${APP_VERSION}"
 VIAddVersionKey "LegalCopyright" "Copyright (c) 2026 DeepSeek"
@@ -30,8 +30,8 @@ UninstPage instfiles
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\SimpChinese.nlf"
 
-LangString Unsupported ${LANG_ENGLISH} "Chat Demo needs 64-bit Windows 10 or Windows 11 and .NET Framework 4.8."
-LangString Unsupported ${LANG_SIMPCHINESE} "Chat Demo 需要 64 位 Windows 10 或 Windows 11，并启用 .NET Framework 4.8。"
+LangString Unsupported ${LANG_ENGLISH} "Desktop Workspace needs 64-bit Windows 10 or Windows 11 and .NET Framework 4.8."
+LangString Unsupported ${LANG_SIMPCHINESE} "桌面工作台需要 64 位 Windows 10 或 Windows 11，并启用 .NET Framework 4.8。"
 LangString RuntimeFailed ${LANG_ENGLISH} "The Microsoft WebView2 Runtime could not be installed. Check your internet connection and run setup again."
 LangString RuntimeFailed ${LANG_SIMPCHINESE} "无法安装 Microsoft WebView2 运行时。请检查网络连接后重新运行安装程序。"
 
@@ -89,6 +89,14 @@ app:
   File /r "${ROOT}\dist\*.*"
   SetOutPath "$INSTDIR"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
+  ReadRegStr $0 HKCU "${UNINSTALL_KEY}" "InstallLocation"
+  ReadRegStr $1 HKCU "${UNINSTALL_KEY}" "DisplayName"
+  ${If} $0 == "$INSTDIR"
+  ${AndIf} $1 == "Chat Demo (WebView2)"
+    Rename "$SMPROGRAMS\Chat Demo (WebView2).lnk" "$SMPROGRAMS\${APP_NAME}.lnk"
+    Rename "$DESKTOP\Chat Demo (WebView2).lnk" "$DESKTOP\${APP_NAME}.lnk"
+    ClearErrors
+  ${EndIf}
   WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayName" "${APP_NAME}"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayVersion" "${APP_VERSION}"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "InstallLocation" "$INSTDIR"

@@ -39,6 +39,20 @@ pnpm build
 - Markdown、代码高亮、KaTeX 公式和 Mermaid 图表。
 - 简体中文与英文、浅色与深色主题、移动端布局、位置设置、历史导入导出。
 
+## Windows 和 macOS 任务工作区
+
+在「新建任务」选择本地文件夹、勾选资料并填写目标。工作台可读取 DOCX 正文和表格、XLSX 工作表中的单元格，以及 Markdown、TXT、CSV、TSV、JSON。Office 文件每份最多 16 MB，文本文件每份最多 1 MB，每次任务提取的文本合计最多 1 MB。勾选资料会发送给当前配置的模型，长资料会分批处理。
+
+切换到聊天时任务会继续执行。可在「任务记录」查看进度、预览成果或基于上一版继续修改。Markdown 会保存到资料目录的「工作台成果」子目录。退出应用会中断正在生成的任务，重新打开后可从记录中重试。已生成的正文保存在本机，写文件失败时可单独重试保存。
+
+### 在 Windows 上打包 Apple 芯片版
+
+打开 [Build macOS DMG (Apple silicon)](https://github.com/918822019/deepseek-chat/actions/workflows/build-macos.yml)，点 **Run workflow**，选择 `main` 并运行。成功后，在该次运行的 **Artifacts** 下载 `Desktop-Workspace-macos-arm64`，解压得到 DMG。工作流会在 Apple 芯片的 Mac 上挂载镜像，读取 DOCX 和 XLSX 测试资料，使用本地模拟模型生成 Markdown，并验证系统打开文档和访达定位。
+
+当前是适用于 macOS 14 及以上的 Apple 芯片测试版，采用本地签名，尚未进行 Developer ID 签名和 Apple 公证。在 Mac 上打开 DMG，将 Desktop Workspace 拖入「应用程序」。首次使用时在「设置」填写模型的 API Key。若系统拦截首次打开，可按 [Apple 关于打开受信任应用的说明](https://support.apple.com/zh-cn/102445)操作。
+
+从 Apple 芯片 Mac 本地构建时，安装 Xcode Command Line Tools、.NET 10 SDK、Node.js 24 和 pnpm，依次执行 `pnpm install --frozen-lockfile` 和 `pnpm macos:build`。磁盘镜像位于 `release/macos/`。
+
 ## 数据
 
 API Key 和设置保存在浏览器 localStorage，会话及附件原件保存在 IndexedDB，本地数据按浏览器用户配置和站点源（origin）隔离。发送对话、上传附件和使用语音功能时，相应内容会提交给配置的 API 服务。

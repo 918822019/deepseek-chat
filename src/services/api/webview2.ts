@@ -1,25 +1,26 @@
+import { getDesktopBridge, isMacDesktop } from '../desktopBridge.js'
+
 type RelayEvent =
   | { id: string; type: 'headers'; status: number; contentType: string | null }
   | { id: string; type: 'chunk'; data: string }
   | { id: string; type: 'end' }
   | { id: string; type: 'error'; message: string }
 
-type WebViewBridge = {
-  postMessage(message: object): void
-  addEventListener(type: 'message', listener: (event: MessageEvent<RelayEvent>) => void): void
-  removeEventListener(type: 'message', listener: (event: MessageEvent<RelayEvent>) => void): void
-}
-
 export function fetchWithDesktopRelay(url: string, init: RequestInit): Promise<Response> {
-  const bridge = (window as Window & { chrome?: { webview?: WebViewBridge } }).chrome?.webview
+  const bridge = getDesktopBridge()
   const route =
     url === '/proxy/nvidia/v1/models' && init.method === 'GET'
       ? 'models'
       : url === '/proxy/nvidia/v1/chat/completions' && init.method === 'POST'
         ? 'chat'
         : null
-  if (location.origin !== 'https://desktop.chat-demo.localhost' || !bridge || !route) {
+  if (!bridge || !route) {
     return fetch(url, init)
+  }
+  if (isMacDesktop()) {
+    const headers = new Headers(init.headers)
+    headers.set('X-Workspace-Relay', '1')
+    return fetch(url, { ...init, headers })
   }
   const { signal } = init
   if (signal?.aborted) {
@@ -56,7 +57,8 @@ export function fetchWithDesktopRelay(url: string, init: RequestInit): Promise<R
       },
       cancel,
     })
-    const receive = ({ data }: MessageEvent<RelayEvent>) => {
+    const receive = (event: MessageEvent<unknown>) => {
+      const data = event.data as RelayEvent | null
       if (data?.id !== id) {
         return
       }

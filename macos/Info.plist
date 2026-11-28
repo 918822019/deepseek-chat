@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleIdentifier</key><string>io.github.918822019.deepseek-chat</string>
+  <key>CFBundleExecutable</key><string>Workspace</string>
+  <key>CFBundleName</key><string>Desktop Workspace</string>
+  <key>CFBundleDisplayName</key><string>Desktop Workspace</string>
+  <key>CFBundleIconFile</key><string>Workspace.icns</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleDevelopmentRegion</key><string>en</string>
+  <key>CFBundleShortVersionString</key><string>0.0.0</string>
+  <key>CFBundleVersion</key><string>0</string>
+  <key>LSMinimumSystemVersion</key><string>14.0</string>
+  <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSPrincipalClass</key><string>NSApplication</string>
+  <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
+  <key>NSDesktopFolderUsageDescription</key><string>Read the selected task files and save the resulting Markdown document.</string>
+  <key>NSDocumentsFolderUsageDescription</key><string>Read the selected task files and save the resulting Markdown document.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Read the selected task files and save the resulting Markdown document.</string>
+</dict></plist>

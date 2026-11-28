@@ -92,7 +92,8 @@ export async function* streamOpenAI(
   apiKey: string,
   body: CreateMessageRequest,
   signal: AbortSignal,
-  fetcher: (url: string, init: RequestInit) => Promise<Response>
+  fetcher: (url: string, init: RequestInit) => Promise<Response>,
+  requireComplete: boolean
 ): AsyncGenerator<MessageStreamEvent> {
   const response = await fetcher(`${provider.baseUrl.replace(/\/+$/, '')}/chat/completions`, {
     method: 'POST',
@@ -104,6 +105,7 @@ export async function* streamOpenAI(
     body: JSON.stringify({
       model: provider.model,
       messages: toOpenAIMessages(body),
+      ...(body.max_tokens ? { max_tokens: body.max_tokens } : {}),
       stream: true,
     }),
     signal,
@@ -118,6 +120,7 @@ export async function* streamOpenAI(
   let index = -1
   let open: 'text' | 'thinking' | null = null
   let stop: 'end_turn' | 'max_tokens' = 'end_turn'
+  let finishReason: string | null = null
   let outputTokens = 0
   const splitter = new ThinkSplitter()
 
@@ -182,9 +185,13 @@ export async function* streamOpenAI(
         yield* emit(part.kind, part.text)
       }
     }
+    finishReason = choice.finish_reason ?? finishReason
     if (choice.finish_reason === 'length') {
       stop = 'max_tokens'
     }
+  }
+  if (requireComplete && finishReason !== 'stop' && finishReason !== 'length') {
+    throw new Error('Model stream ended without a successful finish reason.')
   }
   for (const part of splitter.push('', true)) {
     yield* emit(part.kind, part.text)

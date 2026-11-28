@@ -1,7 +1,7 @@
 import { translate, type TranslationMessage } from '../../i18n/index.js'
 import { readMessageEvent } from './parseEvent.js'
 import { useSettings } from '../settings.js'
-import { streamOpenAI } from './openai.js'
+import { streamOpenAI, type OpenAIProvider } from './openai.js'
 import { resolveProvider } from './providers.js'
 import { readServerSentEvents } from './sse.js'
 import { fetchWithDesktopRelay } from './webview2.js'
@@ -206,11 +206,11 @@ const hasFile = (body: CreateMessageRequest) =>
 export async function* streamMessage(
   apiKey: string,
   body: CreateMessageRequest,
-  signal: AbortSignal
+  signal: AbortSignal,
+  { requireComplete = false, provider = activeProvider() }: { requireComplete?: boolean; provider?: OpenAIProvider | null } = {}
 ): AsyncGenerator<MessageStreamEvent> {
-  const provider = activeProvider()
   if (provider) {
-    yield* streamOpenAI(provider, apiKey, body, signal, request)
+    yield* streamOpenAI(provider, apiKey, body, signal, request, requireComplete)
     return
   }
   const response = await request(`${ANTHROPIC_BASE_URL}/messages`, {
