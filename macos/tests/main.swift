@@ -41,14 +41,23 @@ shell.configurePanel = { panel in
         }
         print("Confirmed folder panel using Return")
     }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+        guard panel.isVisible, NSWorkspace.shared.frontmostApplication?.processIdentifier == ProcessInfo.processInfo.processIdentifier else { return }
+        let source = CGEventSource(stateID: .combinedSessionState)
+        for down in [true, false] {
+            CGEvent(keyboardEventSource: source, virtualKey: 36, keyDown: down)?.post(tap: .cgSessionEventTap)
+        }
+    }
 }
 var opened = Set<String>()
 var finished = false
-@MainActor func checkCompletion() {
+func checkCompletion() {
     guard finished, opened == ["open", "reveal"] else { return }
     print("PASS native folder panel, Word and Excel, model stream, preview, native open and Finder reveal")
-    shell.service.stop()
-    NSApp.terminate(nil)
+    DispatchQueue.main.async {
+        shell.service.stop()
+        NSApp.terminate(nil)
+    }
 }
 shell.opened = { url, reveal in
     guard url.pathExtension == "md", url.deletingLastPathComponent().lastPathComponent == "工作台成果",
